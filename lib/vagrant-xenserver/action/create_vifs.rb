@@ -67,6 +67,10 @@ module VagrantPlugins
               end
 
               (net_ref,net_rec) = netrefrec
+              if net_ref.nil? then
+                  @logger.error("Error finding bridge #{bridge} on host")
+                  raise Errors::NoHostsAvailable
+              end
 
               vif_res = create_vif(env, vm_ref, net_ref, mac)
 
