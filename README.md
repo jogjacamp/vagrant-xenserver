@@ -75,7 +75,7 @@ qemu-img convert *.vmdk -O vpc box.vhd
 ```
 * Remove the other files
 ```shell
-rm -f Vagrantfile box.ovf metadata.json 
+rm -f Vagrantfile box.ovf metadata.json
 ```
 * Make a new metadata file
 ```shell
@@ -126,8 +126,14 @@ end
 
 Note that by default there will be no connection to the external
 network, so most configurations will require a 'public_network'
-defined as in the above Vagrantfile.  To bring the VM up, it should
-then be as simple as
+defined as in the above Vagrantfile. Alternatively you can use
+network names using:
+
+```ruby
+  config.vm.network "public_network", network_name: "mynetwork-name"
+```
+
+To bring the VM up, it should then be as simple as
 
 ```shell
 vagrant up --provider=xenserver
