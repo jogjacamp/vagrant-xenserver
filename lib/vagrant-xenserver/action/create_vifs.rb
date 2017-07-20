@@ -58,8 +58,14 @@ module VagrantPlugins
             if type == :public_network then
               bridge = options[:bridge]
               mac = options[:mac] || ''
+              name_label = options[:network_name] || ''
 
-              netrefrec = networks.find { |ref,net| net['bridge']==bridge }
+              if name_label then
+                netrefrec = networks.find { |ref,net| net['name_label']==name_label }
+              else
+                netrefrec = networks.find { |ref,net| net['bridge']==bridge }
+              end
+
               (net_ref,net_rec) = netrefrec
               if net_ref.nil? then
                   @logger.error("Error finding bridge #{bridge} on host")
