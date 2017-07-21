@@ -25,6 +25,7 @@ module VagrantPlugins
           end
           b.use WaitForCommunicator, ["Running"]
           b.use PrepareNFSSettings         
+          b.use SetHostname
         end
       end
       
