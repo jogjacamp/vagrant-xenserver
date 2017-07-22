@@ -16,6 +16,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "nokogiri", "~> 1.6.3"
   s.add_runtime_dependency "json"
   s.add_runtime_dependency "xenapi"
+  s.add_runtime_dependency "pry"
+  s.add_runtime_dependency "pry-byebug"
 
   s.files         = `git ls-files`.split($\)
   s.executables   = [] # gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
