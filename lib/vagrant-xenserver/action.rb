@@ -23,6 +23,7 @@ module VagrantPlugins
               b2.use StartVM
             end
           end
+          b.use WaitForHIMNCommunicator
           b.use WaitForCommunicator, ["Running"]
           b.use PrepareNFSSettings         
           b.use SetHostname
@@ -256,6 +257,7 @@ module VagrantPlugins
       autoload :PrepareNFSSettings, action_root.join('prepare_nfs_settings')
       autoload :PrepareNFSValidIds, action_root.join('prepare_nfs_valid_ids')
       autoload :DownloadXVA, action_root.join('download_xva')
+      autoload :WaitForHIMNCommunicator, action_root.join('wait_himn')
     end
   end
 end
