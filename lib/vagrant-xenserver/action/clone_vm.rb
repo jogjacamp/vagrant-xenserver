@@ -12,16 +12,8 @@ module VagrantPlugins
 
         def call(env)
           template_ref = env[:template]
-          box_name = env[:machine].box.name.to_s
-          box_version = env[:machine].box.version.to_s
           username = Etc.getlogin
-          
-          if env[:machine].provider_config.name.nil?
-            vm_name = "#{username}/#{box_name}/#{box_version}"
-          else
-            vm_name = env[:machine].provider_config.name
-          end
-
+          vm_name = "#{username}/#{env[:machine].name}"
           vm = nil
           Action.getlock.synchronize do
             vm = env[:xc].VM.clone(template_ref, vm_name)
