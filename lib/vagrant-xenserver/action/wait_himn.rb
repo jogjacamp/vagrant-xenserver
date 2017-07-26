@@ -38,14 +38,20 @@ module VagrantPlugins
 
           assigned_ips = himn_rec['assigned_ips']
           (vif,ip) = assigned_ips.find { |vif,ip| vifs.include? vif }
-
           command = "ssh '#{machine.provider_config.xs_host}' -l '#{machine.provider_config.xs_username}' \"true &>/dev/null </dev/tcp/#{ip.to_s}/22 && echo open || echo closed\""
-          # XXX: Issue #1 https://github.com/jogjacamp/vagrant-xenserver/issues/1
-          # TODO: For now, just sleep 20 seconds :D *evil grind*
-          sleep 20
-
+          max_retry = 20
+          begin
+            retries ||= 0
+            ssh_ready = `#{command}`.strip
+            sleep 1
+            raise if ssh_ready == "closed"
+          rescue
+            if retries == max_retry
+              raise Errors::HIMNCommunicatorError
+            end
+            retry if (retries += 1) <= max_retry
+          end
         end
-
       end
     end
   end

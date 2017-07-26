@@ -29,4 +29,6 @@ en:
         The API call '%{api}' failed with error '%{error}'.
       connection_error: |-
         Failed to connect to the XenServer. Please verify "xs_host" setting is correct.
+      himn_communicator_error: |-
+        Failed to connect to the VM via HIMN. Please make sure the first eth (eth0) is configured as DHCP.
 
