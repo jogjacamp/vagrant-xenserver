@@ -50,6 +50,10 @@ module VagrantPlugins
       class ConnectionError < VagrantXenServerError
         error_key(:connection_error)
       end
+
+      class HIMNCommunicatorError < VagrantXenServerError
+        error_key(:himn_communicator_error)
+      end
       
     end
   end
