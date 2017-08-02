@@ -130,7 +130,7 @@ defined as in the above Vagrantfile. Alternatively you can use
 network names using:
 
 ```ruby
-  config.vm.network "public_network", network_name: "mynetwork-name"
+  config.vm.network "public_network", network: "mynetwork-name"
 ```
 
 To bring the VM up, it should then be as simple as

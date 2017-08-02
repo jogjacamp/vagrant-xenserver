@@ -58,7 +58,7 @@ module VagrantPlugins
             if type == :public_network then
               bridge = options[:bridge]
               mac = options[:mac] || ''
-              name_label = options[:network_name] || ''
+              name_label = options[:network] || ''
 
               if name_label then
                 netrefrec = networks.find { |ref,net| net['name_label']==name_label }
