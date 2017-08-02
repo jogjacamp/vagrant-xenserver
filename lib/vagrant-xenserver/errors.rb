@@ -43,6 +43,14 @@ module VagrantPlugins
         error_key(:import404)
       end
 
+      class InvalidNetwork < VagrantXenServerError
+        error_key(:invalid_network)
+      end
+
+      class InvalidInterface < VagrantXenServerError
+        error_key(:invalid_interface)
+      end
+
       class InsufficientSpace < VagrantXenServerError
         error_key(:insufficientspace)
       end

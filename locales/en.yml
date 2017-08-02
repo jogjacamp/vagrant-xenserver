@@ -31,4 +31,8 @@ en:
         Failed to connect to the XenServer. Please verify "xs_host" setting is correct.
       himn_communicator_error: |-
         Failed to connect to the VM via HIMN. Please make sure the first eth (eth0) is configured as DHCP.
+      invalid_network: |-
+        Invalid network %{network} in machine %{vm}. Available networks: %{allnetwork}
+      invalid_interface: |-
+        Configuration Error: Interface %{eth} on network %{net} is %{opt}. %{message} !
 

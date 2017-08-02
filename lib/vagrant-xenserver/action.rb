@@ -25,8 +25,13 @@ module VagrantPlugins
           end
           b.use WaitForHIMNCommunicator
           b.use WaitForCommunicator, ["Running"]
-          b.use PrepareNFSSettings         
+          b.use Call, IsCreated do |env,b2|
+            if env[:machine].provider_config.use_himn
+              b2.use ConfigureNetwork
+            end
+          end
           b.use SetHostname
+          b.use PrepareNFSSettings         
         end
       end
       
@@ -35,6 +40,7 @@ module VagrantPlugins
           b.use HandleBox
           b.use ConfigValidate
           b.use ConnectXS
+          b.use ValidateNetwork
           b.use Call, IsCreated do |env,b2|
             # Create the VM
             if !env[:result]
@@ -258,6 +264,8 @@ module VagrantPlugins
       autoload :PrepareNFSValidIds, action_root.join('prepare_nfs_valid_ids')
       autoload :DownloadXVA, action_root.join('download_xva')
       autoload :WaitForHIMNCommunicator, action_root.join('wait_himn')
+      autoload :ValidateNetwork, action_root.join('validate_network')
+      autoload :ConfigureNetwork, action_root.join('configure_network')
     end
   end
 end
