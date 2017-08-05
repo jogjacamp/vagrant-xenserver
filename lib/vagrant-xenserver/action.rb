@@ -25,6 +25,7 @@ module VagrantPlugins
           end
           b.use WaitForHIMNCommunicator
           b.use WaitForCommunicator, ["Running"]
+          b.use ConfigureResolver
           b.use Call, IsCreated do |env,b2|
             if env[:machine].provider_config.use_himn
               b2.use ConfigureNetwork
@@ -266,6 +267,7 @@ module VagrantPlugins
       autoload :WaitForHIMNCommunicator, action_root.join('wait_himn')
       autoload :ValidateNetwork, action_root.join('validate_network')
       autoload :ConfigureNetwork, action_root.join('configure_network')
+      autoload :ConfigureResolver, action_root.join('configure_resolver')
     end
   end
 end
