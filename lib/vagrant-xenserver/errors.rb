@@ -63,6 +63,10 @@ module VagrantPlugins
         error_key(:himn_communicator_error)
       end
       
+      class CannotAllocateAddress < VagrantXenServerError
+        error_key(:allocate_address_error)
+      end
+      
     end
   end
 end

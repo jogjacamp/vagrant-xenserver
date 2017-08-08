@@ -35,6 +35,8 @@ en:
         Invalid network %{network} in machine %{vm}. Available networks: %{allnetwork}
       invalid_interface: |-
         Configuration Error: Interface %{eth} on network %{net} is %{opt}. %{message} !
+      allocate_address_error: |-
+        Runtime Error: Cannot allocate IP on network %{subnet}!
     info:
       configure_resolver: |-
         Configuring DNS resolver using %{dns}

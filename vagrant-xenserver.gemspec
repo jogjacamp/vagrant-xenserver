@@ -13,11 +13,12 @@ Gem::Specification.new do |s|
   s.description   = "Enables Vagrant to manage XenServers."
 
   s.add_development_dependency "rake"
+  s.add_development_dependency "pry"
+  s.add_development_dependency "pry-byebug"
   s.add_runtime_dependency "nokogiri", "~> 1.6.3"
   s.add_runtime_dependency "json", "~> 1.8"
   s.add_runtime_dependency "xenapi"
-  s.add_runtime_dependency "pry"
-  s.add_runtime_dependency "pry-byebug"
+  s.add_runtime_dependency "net-ping"
 
   s.files         = `git ls-files`.split($\)
   s.executables   = [] # gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

@@ -1,5 +1,6 @@
 require "log4r"
 require "xmlrpc/client"
+require "net/ping/external"
 
 module VagrantPlugins
   module XenServer
@@ -8,6 +9,44 @@ module VagrantPlugins
         def initialize(app, env)
           @app = app
           @logger = Log4r::Logger.new("vagrant::xenserver::actions::validate_network")
+        end
+
+        def ping(host)
+          check = Net::Ping::External.new(host)
+          check.timeout = 1
+          check.ping?
+        end
+
+        # Choose next IP if available
+        def next_hashed_ip(host, prefix, timeout=10)
+          h = hash_last_octet(host)
+          Timeout::timeout(timeout) do
+            (((h-1)..253).to_a + (3..h).to_a).each do |i|
+              ip = "#{prefix}.#{i}"
+              taken = ping(ip)
+              return ip if not taken
+            end
+            sleep timeout + 1
+          end
+        rescue Timeout::Error, StandardError
+          raise Errors::CannotAllocateAddress, subnet: prefix
+        end
+
+        def hash_last_octet(n)
+          # compute hostname (string) to a number between 3..253
+          def _split(i)
+            i.split("").map do |x|
+              c = x.to_i
+              if c == 0
+                # if not number, convert "a"->1, "b"->2, dst
+                c = (x.upcase.ord - 64).abs
+              end
+              c
+            end
+          end
+          # sum the array and return a number which is not 1,2 or 253
+          # as it is usually a gateway address / router
+          ((_split n).inject(:+) % 251 ) + 3
         end
 
         def call(env)
@@ -50,6 +89,15 @@ module VagrantPlugins
             (net_ref, net_rec) = netrefrec
             if net_ref.nil?
               raise Errors::InvalidNetwork, network: v[:network], allnetwork: allnets_str, vm: env[:machine].name
+            end
+
+            # if not DHCP, and last IP octet is not integer, find available IP by trying to ping
+            # next IP from its subnet based from a number which is a hash of its hostname
+            if v[:proto] == "static"
+              ip_part = v[:ip].rpartition(".")
+              if not /\A\d+\z/.match(ip_part[2])
+                v[:ip] = next_hashed_ip(env[:machine].name.to_s, ip_part[0])
+              end
             end
 
             # Assign network UUID/ref

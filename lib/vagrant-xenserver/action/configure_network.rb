@@ -35,11 +35,11 @@ module VagrantPlugins
             network[:netmask] = option[:netmask]
             network[:gateway] = option[:gateway]
 
-            static_str = option[:ip].nil? ? "" : " / #{option[:ip]}"
+            ip_str = option[:ip].nil? ? "" : " / #{option[:ip]}"
 
             env[:ui].detail(I18n.t(
               "vagrant.virtualbox.network_adapter",
-              adapter: "#{eth} (#{option[:proto]}#{static_str})",
+              adapter: "#{eth} (#{option[:proto]}#{ip_str})",
               type: "#{option[:network_type]}",
               extra: " on network #{option[:network]}",
             ))
