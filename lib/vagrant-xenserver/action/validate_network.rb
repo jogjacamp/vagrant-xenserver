@@ -1,3 +1,4 @@
+require "etc"
 require "log4r"
 require "xmlrpc/client"
 require "net/ping/external"
@@ -34,6 +35,7 @@ module VagrantPlugins
 
         def hash_last_octet(n)
           # compute hostname (string) to a number between 3..253
+          # include username too, so ip conflict is less likely happen
           def _split(i)
             i.split("").map do |x|
               c = x.to_i
@@ -46,7 +48,7 @@ module VagrantPlugins
           end
           # sum the array and return a number which is not 1,2 or 253
           # as it is usually a gateway address / router
-          ((_split n).inject(:+) % 251 ) + 3
+          ((_split "#{Etc.getlogin}-#{n}").inject(:+) % 251 ) + 3
         end
 
         def call(env)
