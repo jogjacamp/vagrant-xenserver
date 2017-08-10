@@ -20,17 +20,19 @@ module VagrantPlugins
 
         # Choose next IP if available
         def next_hashed_ip(host, prefix, timeout=10)
-          h = hash_last_octet(host)
-          Timeout::timeout(timeout) do
-            (((h-1)..253).to_a + (3..h).to_a).each do |i|
-              ip = "#{prefix}.#{i}"
-              taken = ping(ip)
-              return ip if not taken
+          begin
+            h = hash_last_octet(host)
+            Timeout::timeout(timeout) do
+              (((h-1)..253).to_a + (3..h).to_a).each do |i|
+                ip = "#{prefix}.#{i}"
+                taken = ping(ip)
+                return ip if not taken
+              end
+              sleep timeout + 1
             end
-            sleep timeout + 1
+          rescue Timeout::Error, StandardError
+            raise Errors::CannotAllocateAddress, subnet: prefix
           end
-        rescue Timeout::Error, StandardError
-          raise Errors::CannotAllocateAddress, subnet: prefix
         end
 
         def hash_last_octet(n)

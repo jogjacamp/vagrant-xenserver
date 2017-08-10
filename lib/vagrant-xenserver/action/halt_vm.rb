@@ -9,12 +9,20 @@ module VagrantPlugins
           @app = app
           @logger = Log4r::Logger.new("vagrant::xenserver::actions::halt_vm")
         end
-        
-        def call(env)
-          myvm = env[:machine].id
-          
-          shutdown_result = env[:xc].VM.clean_shutdown(myvm)
 
+        def shutdown(xc, vm)
+          begin
+            Timeout::timeout(15) do
+              xc.VM.clean_shutdown(vm)
+            end
+          rescue Timeout::Error, StandardError
+            puts "hard"
+            xc.VM.hard_shutdown(vm)
+          end
+        end
+
+        def call(env)
+          shutdown env[:xc], env[:machine].id
           @app.call env
         end
       end
