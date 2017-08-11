@@ -100,6 +100,8 @@ module VagrantPlugins
             if v[:proto] == "static"
               ip_part = v[:ip].rpartition(".")
               if not /\A\d+\z/.match(ip_part[2])
+                # copy config to another symbol
+                v[:ip_raw] = v[:ip].dup
                 v[:ip] = next_hashed_ip(env[:machine].name.to_s, ip_part[0])
               end
             end

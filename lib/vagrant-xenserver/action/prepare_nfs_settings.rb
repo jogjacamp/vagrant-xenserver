@@ -1,6 +1,7 @@
 require 'nokogiri'
 require 'socket'
 require 'rbconfig'
+require 'net/ping/external'
 
 def os
     @os ||= (
@@ -50,31 +51,34 @@ module VagrantPlugins
               public_network_defined = true
 
               # Find which network has the network name match in Vagrantfile and is routable
-              if net[:proto] == "static"
-                if ping(net[:ip])
-                  vm_ip = net[:ip]
-                  env[:nfs_machine_ip] = vm_ip
-                  break
+              # :ip_raw can be exists if using notation 10.0.0.X (no digit in last octet)
+              if net[:proto] == "static" and !net[:ip_raw].nil?
+                if not /\A\d+\z/.match(net[:ip_raw].rpartition(".")[2]).nil?
+                  if ping(net[:ip])
+                    vm_ip = net[:ip]
+                    env[:nfs_machine_ip] = vm_ip
+                    break
+                  end
                 end
-              else # This is dhcp / unknown IP. Let's find out
-                # Get VM record
-                @vm ||= env[:xc].VM.get_record(env[:machine].id)
-                # Get all Networks
-                @networks ||= env[:xc].network.get_all_records
-                # Get guest network metrics
-                @guest_metrics ||= env[:xc].VM_guest_metrics.get_networks(env[:xc].VM.get_guest_metrics(env[:machine].id))
-                # Find vm networks which match machine config
-                vm_net = @networks.find { |k,v| v['name_label'].upcase == net[:network].upcase }
-                vm_vif = vm_net[1]['VIFs'].find { |v| @vm['VIFs'].include? v }
-                # Find the VIF's "device" number, e.g. device 2 is eth2 in a centos guest
-                vif = env[:xc].VIF.get_record(vm_vif)
-                # Get the IP
-                ip = @guest_metrics[vif["device"] + "/ip"]
-                if ping(ip)
-                  vm_ip = ip
-                  env[:nfs_machine_ip] = vm_ip
-                  break
-                end
+              end
+              # This is dhcp / using X notation as last IP octet. Let's find out
+              # Get VM record
+              @vm ||= env[:xc].VM.get_record(env[:machine].id)
+              # Get all Networks
+              @networks ||= env[:xc].network.get_all_records
+              # Get guest network metrics
+              @guest_metrics ||= env[:xc].VM_guest_metrics.get_networks(env[:xc].VM.get_guest_metrics(env[:machine].id))
+              # Find vm networks which match machine config
+              vm_net = @networks.find { |k,v| v['name_label'].upcase == net[:network].upcase }
+              vm_vif = vm_net[1]['VIFs'].find { |v| @vm['VIFs'].include? v }
+              # Find the VIF's "device" number, e.g. device 2 is eth2 in a centos guest
+              vif = env[:xc].VIF.get_record(vm_vif)
+              # Get the IP
+              ip = @guest_metrics[vif["device"] + "/ip"]
+              if ping(ip)
+                vm_ip = ip
+                env[:nfs_machine_ip] = vm_ip
+                break
               end
             end
 
@@ -128,16 +132,10 @@ module VagrantPlugins
         end
 
         # Check if we can open a connection to the host
-        def ping(host, timeout = 3)
-          Timeout::timeout(timeout) do
-            s = TCPSocket.new(host, 'echo')
-            s.close
-          end
-          true
-        rescue Errno::ECONNREFUSED
-          true
-        rescue Timeout::Error, StandardError
-          false
+        def ping(host)
+          check = Net::Ping::External.new(host)
+          check.timeout = 3
+          check.ping?
         end
       end
     end

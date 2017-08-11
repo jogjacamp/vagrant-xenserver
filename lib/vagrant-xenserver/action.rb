@@ -25,10 +25,12 @@ module VagrantPlugins
           end
           b.use WaitForHIMNCommunicator
           b.use WaitForCommunicator, ["Running"]
-          b.use ConfigureResolver
           b.use Call, IsCreated do |env,b2|
-            if env[:machine].provider_config.use_himn
-              b2.use ConfigureNetwork
+            if !env[:result]
+              if env[:machine].provider_config.use_himn
+                b2.use ConfigureNetwork
+                b2.use ConfigureResolver
+              end
             end
           end
           b.use SetHostname
