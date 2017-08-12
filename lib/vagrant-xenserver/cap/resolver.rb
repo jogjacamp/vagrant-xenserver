@@ -7,7 +7,7 @@ module VagrantPlugins
       include Vagrant::Util
 
       def self.configure_resolver(machine, dns)
-        resolv = ""
+        resolv = "# #{machine.name} resolv.conf by vagrant-xenserver\n"
         dns.each do |line|
           resolv += "nameserver #{line}\n"
         end

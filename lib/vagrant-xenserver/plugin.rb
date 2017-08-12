@@ -20,7 +20,7 @@ module VagrantPlugins
       end
 
       guest_capability('linux', 'configure_resolver') do
-        require_relative 'cap/configure_resolver'
+        require_relative 'cap/resolver'
         Cap::ConfigureResolver
       end
 

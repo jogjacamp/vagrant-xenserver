@@ -35,6 +35,9 @@ module VagrantPlugins
             end
           end
 
+          # Continue the middleware chain.
+          @app.call(env)
+
           if not dhcp_enabled
             dns_str = dns.to_a.join(", ")
             @logger.info("Configuring DNS [#{dns_str}]")
@@ -45,8 +48,7 @@ module VagrantPlugins
               :configure_resolver, dns)
           end
 
-          # finally
-          @app.call env
+
         end
       end
     end

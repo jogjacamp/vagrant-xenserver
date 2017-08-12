@@ -66,7 +66,10 @@ module VagrantPlugins
       class CannotAllocateAddress < VagrantXenServerError
         error_key(:allocate_address_error)
       end
-      
+
+      class ReadIPError < VagrantXenServerError
+        error_key(:read_ip_error)
+      end
     end
   end
 end

@@ -13,7 +13,7 @@ module VagrantPlugins
       end
 
       def self.action_boot
-	Vagrant::Action::Builder.new.tap do |b| 
+      	Vagrant::Action::Builder.new.tap do |b| 
           b.use Provision
           b.use PrepareNFSValidIds
           b.use SyncedFolderCleanup
@@ -22,24 +22,24 @@ module VagrantPlugins
             if !env[:result]
               b2.use StartVM
             end
+            b2.use WaitForHIMNCommunicator
+            b2.use WaitForCommunicator, ["Running"]
           end
-          b.use WaitForHIMNCommunicator
-          b.use WaitForCommunicator, ["Running"]
-          b.use Call, IsCreated do |env,b2|
-            if !env[:result]
-              if env[:machine].provider_config.use_himn
-                b2.use ConfigureNetwork
-                b2.use ConfigureResolver
-              end
+          b.use Call, ReadIP do |env, b2|
+            if env[:machine_ip_seen].nil?
+              b2.use ConfigureNetwork
             end
           end
+          b.use ConfigureResolver
+          b.use Call, ReadIP, :wait do |env, b2|
+            b2.use PrepareNFSSettings
+          end
           b.use SetHostname
-          b.use PrepareNFSSettings         
         end
       end
       
       def self.action_up
-	Vagrant::Action::Builder.new.tap do |b|
+        Vagrant::Action::Builder.new.tap do |b|
           b.use HandleBox
           b.use ConfigValidate
           b.use ConnectXS
@@ -248,6 +248,7 @@ module VagrantPlugins
       autoload :ConnectXS, action_root.join("connect_xs")
       autoload :DummyMessage, action_root.join('dummy')
       autoload :ReadState, action_root.join('read_state')
+      autoload :ReadIP, action_root.join('read_ip')
       autoload :IsCreated, action_root.join('is_created')
       autoload :IsRunning, action_root.join('is_running')
       autoload :IsSuspended, action_root.join('is_suspended')
@@ -273,4 +274,3 @@ module VagrantPlugins
     end
   end
 end
-

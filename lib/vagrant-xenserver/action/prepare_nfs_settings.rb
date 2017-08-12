@@ -1,7 +1,6 @@
 require 'nokogiri'
 require 'socket'
 require 'rbconfig'
-require 'net/ping/external'
 
 def os
     @os ||= (
@@ -40,52 +39,14 @@ module VagrantPlugins
           if using_nfs?
             @logger.info("Using NFS, preparing NFS settings by reading host IP and machine IP")
             env[:nfs_host_ip] = read_host_ip(env[:machine],env)
+            env[:nfs_machine_ip] = env[:machine_ip_seen]
 
-            public_network_defined = false
-            vm_ip = nil
-
-            # check if there is public_network defined in Vagrantfile
-            # pick the one which is routable, and return
-            env[:machine].config.vm.networks.each do |ntype, net|
-              next if ntype == :forwarded_port or ntype == :private_network
-              public_network_defined = true
-
-              # Find which network has the network name match in Vagrantfile and is routable
-              # :ip_raw can be exists if using notation 10.0.0.X (no digit in last octet)
-              if net[:proto] == "static" and !net[:ip_raw].nil?
-                if not /\A\d+\z/.match(net[:ip_raw].rpartition(".")[2]).nil?
-                  if ping(net[:ip])
-                    vm_ip = net[:ip]
-                    env[:nfs_machine_ip] = vm_ip
-                    break
-                  end
-                end
-              end
-              # This is dhcp / using X notation as last IP octet. Let's find out
-              # Get VM record
-              @vm ||= env[:xc].VM.get_record(env[:machine].id)
-              # Get all Networks
-              @networks ||= env[:xc].network.get_all_records
-              # Get guest network metrics
-              @guest_metrics ||= env[:xc].VM_guest_metrics.get_networks(env[:xc].VM.get_guest_metrics(env[:machine].id))
-              # Find vm networks which match machine config
-              vm_net = @networks.find { |k,v| v['name_label'].upcase == net[:network].upcase }
-              vm_vif = vm_net[1]['VIFs'].find { |v| @vm['VIFs'].include? v }
-              # Find the VIF's "device" number, e.g. device 2 is eth2 in a centos guest
-              vif = env[:xc].VIF.get_record(vm_vif)
-              # Get the IP
-              ip = @guest_metrics[vif["device"] + "/ip"]
-              if ping(ip)
-                vm_ip = ip
-                env[:nfs_machine_ip] = vm_ip
-                break
-              end
-            end
-
+            # check if there is external_network defined in Vagrantfile
+            net_exists = env[:vifs].any? {|k,v| v[:network_type] == "external_network"}
             # public_network defined, but unreachable or has no IP
-            raise Vagrant::Errors::NFSNoGuestIP if public_network_defined && vm_ip.nil?
+            raise Vagrant::Errors::NFSNoGuestIP if net_exists and env[:machine_ip_seen].nil?
             # no public_network but invalid nfs_host_ip
-            raise Vagrant::Errors::NFSNoHostonlyNetwork if !env[:nfs_machine_ip] || !env[:nfs_host_ip]
+            raise Vagrant::Errors::NFSNoHostonlyNetwork if !env[:nfs_machine_ip] or !env[:nfs_host_ip]
 
             @logger.info("host IP: #{env[:nfs_host_ip]} machine IP: #{env[:nfs_machine_ip]}")
           end
@@ -129,13 +90,6 @@ module VagrantPlugins
           elsif os == :windows then get_local_ip_win(ip)
           else raise Vagrant::Errors::UnknownOS # "unknown os: #{host_os.inspect}"
           end
-        end
-
-        # Check if we can open a connection to the host
-        def ping(host)
-          check = Net::Ping::External.new(host)
-          check.timeout = 3
-          check.ping?
         end
       end
     end
